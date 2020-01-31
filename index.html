@@ -1,50 +1,109 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+        <title>RxJS Code Smells</title>
 
-		<link rel="stylesheet" href="css/reset.css">
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+        <link rel="stylesheet" href="css/reset.css">
+        <link rel="stylesheet" href="css/reveal.css">
+        <link rel="stylesheet" href="css/theme/scott.css">
 
-		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/monokai.css">
+        <!-- Theme used for syntax highlighting of code -->
+        <link rel="stylesheet" href="lib/css/night-owl.css">
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
-		</div>
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
 
-		<script src="js/reveal.js"></script>
+        <script src="https://kit.fontawesome.com/901d19df32.js" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h1>RxJS Code Smells</h1>
+                    <div class="portrait-container">
+                        <div class="portrait">
+                            <img src="assets/images/portrait.PNG" alt="portrait"/>
+                        </div>
+                        <div class="accounts">
+                            <div>Scott Haley</div>
+                            <div><i class="fab fa-twitter"></i>@scott_haley</div>
+                            <div><i class="fab fa-github"></i>scotthaley</div>
+                            <div><i class="fab fa-gitlab"></i>@scotthaley</div>
+                        </div>
+                    </div>
+                </section>
+                <section data-background="#1C1D21" style="text-align: left">
+                    <h2>About Me</h2>
+                    <ul>
+                        <li>Full-stack&trade; engineer at Dialexa</li>
+                        <li class="fragment">Real into AR/VR stuff lately</li>
+                        <li class="fragment">Make games outside of work</li>
+                    </ul>
+                    <div class="gifs fragment">
+                        <div><img src="assets/images/TechnoAgent.gif" alt="techno agent"/></div>
+                        <div><img src="assets/images/gears!.gif" alt="gears"/></div>
+                        <div><img src="assets/images/PinnedPlains.gif" alt="pinned"/></div>
+                    </div>
+                </section>
+                <section>
+                    <h2>About RxJS</h2>
+                    <blockquote>
+                        &ldquo;RxJS is a library for reactive programming using Observables, to make it easier to compose asynchronous or callback-based code.&rdquo;
+                    </blockquote>
+                </section>
+                <section style="text-align: left">
+                    <h2>Simple Examples</h2>
+                    <pre><code class="javascript" data-trim>
+                        interval(1000).subscribe(x => console.log(x));
 
-		<script>
-			// More info about config & dependencies:
-			// - https://github.com/hakimel/reveal.js#configuration
-			// - https://github.com/hakimel/reveal.js#dependencies
-			Reveal.initialize({
-				hash: true,
-				dependencies: [
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
-					{ src: 'plugin/highlight/highlight.js' },
-					{ src: 'plugin/notes/notes.js', async: true }
-				]
-			});
-		</script>
-	</body>
+                        // 0
+                        // 1
+                        // 2
+                    </code></pre>
+                    <pre class="fragment"><code class="javascript" data-trim>
+                        fromFetch('https://cat-facts.com/api')
+                            .subscribe(
+                                res => console.log(res),
+                                error => console.log(error)
+                            );
+                    </code></pre>
+                    <pre class="fragment"><code class="javascript" data-trim>
+                        fromFetch('https://cat-facts.com/api')
+                            .map(res => res.upvotes > 5)
+                            .tap(res => emailMeCatFacts(res))
+                            .subscribe(
+                                res => console.log(res),
+                                error => console.log(error)
+                            );
+                    </code></pre>
+                </section>
+            </div>
+        </div>
+
+        <script src="js/reveal.js"></script>
+
+        <script>
+            // More info about config & dependencies:
+            // - https://github.com/hakimel/reveal.js#configuration
+            // - https://github.com/hakimel/reveal.js#dependencies
+            Reveal.initialize({
+                hash: true,
+                dependencies: [
+                    { src: 'plugin/markdown/marked.js' },
+                    { src: 'plugin/markdown/markdown.js' },
+                    { src: 'plugin/highlight/highlight.js' },
+                    { src: 'plugin/notes/notes.js', async: true }
+                ]
+            });
+        </script>
+    </body>
 </html>
