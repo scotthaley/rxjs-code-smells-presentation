@@ -28,7 +28,8 @@
         <div class="reveal">
             <div class="slides">
                 <section>
-                    <h1>RxJS Code Smells</h1>
+                    <h1>RxJS</h1>
+                    <h3>(and Why You Should Use It)</h3>
                     <div class="portrait-container">
                         <div class="portrait">
                             <img src="assets/images/portrait.PNG" alt="portrait"/>
@@ -38,6 +39,7 @@
                             <div><i class="fab fa-twitter"></i>@scott_haley</div>
                             <div><i class="fab fa-github"></i>scotthaley</div>
                             <div><i class="fab fa-gitlab"></i>@scotthaley</div>
+                            <div><i class="fab fa-linkedin"></i>scott-haley</div>
                         </div>
                     </div>
                 </section>
@@ -46,7 +48,7 @@
                     <ul>
                         <li>Full-stack&trade; engineer at Dialexa</li>
                         <li class="fragment">Real into AR/VR stuff lately</li>
-                        <li class="fragment">Make games outside of work</li>
+                        <li class="fragment">Make games for fun</li>
                     </ul>
                     <div class="gifs fragment">
                         <div><img src="assets/images/TechnoAgent.gif" alt="techno agent"/></div>
@@ -60,36 +62,379 @@
                         &ldquo;RxJS is a library for reactive programming using Observables, to make it easier to compose asynchronous or callback-based code.&rdquo;
                     </blockquote>
                 </section>
-                <section style="text-align: left">
-                    <h2>Simple Examples</h2>
-                    <pre><code class="javascript" data-trim>
-                        interval(1000).subscribe(x => console.log(x));
+                <section>
+                    <section style="text-align: left">
+                        <h2>Simple Examples</h2>
+                        <pre><code class="javascript" data-trim>
+interval(1000).subscribe(x => console.log(x));
 
-                        // 0
-                        // 1
-                        // 2
-                    </code></pre>
-                    <pre class="fragment"><code class="javascript" data-trim>
-                        fromFetch('https://cat-facts.com/api')
-                            .subscribe(
-                                res => console.log(res),
-                                error => console.log(error)
-                            );
-                    </code></pre>
-                    <pre class="fragment"><code class="javascript" data-trim>
-                        fromFetch('https://cat-facts.com/api')
-                            .map(res => res.upvotes > 5)
-                            .tap(res => emailMeCatFacts(res))
-                            .subscribe(
-                                res => console.log(res),
-                                error => console.log(error)
-                            );
-                    </code></pre>
+// 0
+// 1
+// 2
+                        </code></pre>
+                        <pre class="fragment"><code class="javascript" data-trim>
+fromFetch('https://cat-facts.com/api')
+    .subscribe(
+        res => console.log(res),
+        error => console.log(error)
+    );
+
+/*
+[
+    { id: 1, fact: 'cat fact 1', upvotes: 4 },
+    { id: 2, fact: 'cat fact 2', upvotes: 6 },
+    { id: 3, fact: 'cat fact 3', upvotes: 3 }
+]
+*/
+                        </code></pre>
+                    </section>
+                    <section style="text-align: left">
+                        <h2>Simple Examples Cont.</h2>
+                        <pre><code class="javascript" data-trim>
+fromFetch('https://cat-facts.com/api')
+    // "map" applies a function to each value emitted
+    .map(res => res.filter(fact => fact.upvotes > 5))
+
+    // "tap" performs a side effect for every emission
+    // and returns an identical Observable
+    .tap(res => emailMeCatFacts(res))
+    .subscribe(
+        res => console.log(res),
+        error => console.log(error)
+    );
+
+/*
+[
+    { id: 2, fact: 'cat fact 2', upvotes: 6 }
+]
+*/
+                        </code></pre>
+                    </section>
+                    <section style="text-align: left">
+                        <h2>Simple Examples Cont. Cont.</h2>
+                        <pre><code class="javascript" data-trim>
+fromFetch('https://cat-facts.com/api')
+    .map(res => res.filter(fact => fact.upvotes > 5)[0]) // { id: 2, ... }
+    .mergeMap(res => fromFetch(`https://cat-facts.com/api/${res.id}`))
+    .subscribe(
+        res => console.log(res),
+        error => console.log(error)
+    );
+
+/*
+{
+    id: 2,
+    submittedBy: 'Scott Haley',
+    upvotes: 6
+*/
+                        </code></pre>
+                    </section>
+                </section>
+                <section data-background="#1C1D21">
+                    <h2>This is great</h2>
+                    <h3 class="fragment">but why...</h3>
+                </section>
+                <section data-background="#3F8EE9" class="override-dark" style="text-align: left;">
+                    <h2>Couldn't I just use promises?</h2>
+                </section>
+                <section>
+                    <section data-background="#3F8EE9" class="override-dark" >
+                        <div class="image-overlays">
+                            <img src="assets/images/tile-example-1a.png"/>
+                            <img src="assets/images/tile-example-1b.png" class="fragment"/>
+                            <img src="assets/images/tile-example-1c.png" class="fragment"/>
+                            <img src="assets/images/tile-example-1d.png" class="fragment"/>
+                        </div>
+                        <div class="fragment" style="position: absolute; bottom: 20px; width: 100%">
+                            <h2>Let's build this with promises!</h2>
+                        </div>
+                    </section>
+                    <section>
+                        <pre><code class="javascript" data-trim>
+// Tile.js
+import { loadDataSource } from 'TileService.js';
+
+const Tile = ({ dataSource, filters }) => {
+    const [tileData, setTileData] = useState({});
+
+    useEffect(() => {
+        loadDataSource(dataSource, filters).next(setTileData);
+    }, [dataSource, filters]);
+
+    return (
+        &lt;div&gt;
+            &lt;FilterRow filters={filters} /&gt;
+            &lt;Visualization source={tileData} /&gt;
+        &lt;/div&gt;
+    );
+}
+                        </code></pre>
+                        <pre class="fragment"><code class="javascript" data-trim>
+// TileService.js
+export const loadDataSource = (source, filters) => {
+    switch(source) {
+        case 'simple':
+            return fetchTileData(filters);
+    }
+}
+                        </code></pre>
+                    </section>
+                    <section>
+                        <pre><code class="javascript focus" data-trim>
+// TileService.js
+import { grabOtherData } from 'SomeDataStore.js';
+
+export const loadDataSource = (source, filters) => {
+    switch(source) {
+        case 'simple':
+            return fetchTileData(filters);
+        case 'advanced':
+            return new Promise((resolve, reject) => {
+                grabOtherData().next(otherData => {
+                    resolve(fetchTileData(filters, otherData));
+                }).catch(error => reject(error));
+            });
+    }
+}
+                        </code></pre>
+                        <p class="fragment" data-code-focus="8-13">Now let's add a more complicated data source</p>
+                    </section>
+                    <section>
+                        <p>How do we handle changing filters?</p>
+                        <div style="height: 600px">
+                            <pre class="fragment current-only"><code class="javascript" data-trim>
+// Tile.js
+import { loadDataSource } from 'TileService.js';
+
+const Tile = ({ dataSource, filters }) => {
+    const [tileData, setTileData] = useState({});
+
+    useEffect(() => {
+        loadDataSource(dataSource, filters).next(setTileData);
+    }, [dataSource, filters]);
+
+    return (
+        &lt;div&gt;
+            &lt;FilterRow filters={filters} /&gt;
+            &lt;Visualization source={tileData} /&gt;
+        &lt;/div&gt;
+    );
+}
+                            </code></pre>
+                            <div class="fragment current-only combined-code">
+                                <pre><code class="javascript blur" data-trim>
+// Tile.js
+import { loadDataSource, mapFilterValues } from 'TileService.js';
+
+const Tile = ({ dataSource, filters }) => {
+    const [tileData, setTileData] = useState({});
+                                </code></pre>
+                                <pre><code class="javascript">    const [filterValues, setFilterValues] = useState(
+        mapFilterValues(filters)
+    );
+    /*
+    {
+        'filter1': 'value1',
+        'filter2': 'value2'
+    }
+    */
+                                </code></pre>
+                                <pre><code class="javascript blur">
+    useEffect(() => {
+        loadDataSource(dataSource, filters).next(setTileData);
+    }, [dataSource, filters]);
+
+    return (
+        &lt;div&gt;
+            &lt;FilterRow filters={filters} /&gt;
+            &lt;Visualization source={tileData} /&gt;
+        &lt;/div&gt;
+    );
+}
+                                </code></pre>
+                            </div>
+                            <div class="fragment current-only combined-code">
+                                <pre><code class="javascript blur">// Tile.js
+import { loadDataSource, mapFilterValues } from 'TileService.js';
+
+const Tile = ({ dataSource, filters }) => {
+    const [tileData, setTileData] = useState({});
+    const [filterValues, setFilterValues] = useState(
+        mapFilterValues(filters)
+    );
+
+                                </code></pre>
+                                <pre><code class="javascript">    useEffect(() => {
+        loadDataSource(dataSource, filterValues).next(setTileData);
+    }, [dataSource, filterValues]);
+                                </code></pre>
+                                <pre><code class="javascript blur">
+    return (
+        &lt;div&gt;
+            &lt;FilterRow filters={filters} /&gt;
+            &lt;Visualization source={tileData} /&gt;
+        &lt;/div&gt;
+    );
+}
+                                </code></pre>
+                            </div>
+                            <div class="fragment current-only combined-code">
+                                <pre><code class="javascript blur" data-trim>
+// Tile.js
+import { loadDataSource, mapFilterValues } from 'TileService.js';
+
+const Tile = ({ dataSource, filters }) => {
+    const [tileData, setTileData] = useState({});
+    const [filterValues, setFilterValues] = useState(
+        mapFilterValues(filters)
+    );
+
+    useEffect(() => {
+        loadDataSource(dataSource, filterValues).next(setTileData);
+    }, [dataSource, filterValues]);
+
+                                </code></pre>
+                                <pre><code class="javascript">
+    return (
+        &lt;div&gt;
+            &lt;FilterRow
+                filters={filters}
+                values={filterValues}
+                onChange={setFilterValues}
+            /&gt;
+            &lt;Visualization source={tileData} /&gt;
+        &lt;/div&gt;
+    );
+                                </code></pre>
+                                <pre><code class="javascript blur">}
+                                </code></pre>
+                            </div>
+                        </div>
+                    </section>
+                    <section data-background="#3F8EE9" class="override-dark">
+                        <h4>Recap</h4>
+                        <img src="assets/images/dataflow-diagram-1.png" alt="data flow diagram"/>
+                    </section>
+                </section>
+                <section>
+                    <section data-background="#3F8EE9" class="override-dark" style="text-align: left;">
+                        <h2>This seems fine, what's the issue?</h2>
+                    </section>
+                    <section style="text-align: left;">
+                        <h4>Now consider what happens if <code class="inline">SomeDataStore</code> changes...</h4>
+                        <div style="height: 600px">
+                            <div class="fragment current-only combined-code">
+                                <pre><code class="javascript blur" data-trim>
+// Tile.js
+import { loadDataSource, mapFilterValues } from 'TileService.js';
+
+const Tile = ({ dataSource, filters }) => {
+    const [tileData, setTileData] = useState({});
+    const [filterValues, setFilterValues] = useState(
+        mapFilterValues(filters)
+    );
+                                </code></pre>
+                                <pre><code class="javascript">
+    const otherData = useSelector(GrabOtherData);
+
+    useEffect(() => {
+        loadDataSource(dataSource, filterValues, otherData).next(setTileData);
+    }, [dataSource, filterValues, otherData]);
+                                </code></pre>
+                                <pre><code class="javascript blur">
+    return (
+        &lt;div&gt;
+            &lt;FilterRow
+                filters={filters}
+                values={filterValues}
+                onChange={setFilterValues}
+            /&gt;
+            &lt;Visualization source={tileData} /&gt;
+        &lt;/div&gt;
+    );
+}
+                                </code></pre>
+                                <p>We could let the tile watch for changes in the other data store...</p>
+                            </div>
+                            <div class="fragment current-only">
+                                <pre><code class="javascript" data-trim>
+// TileService.js
+import { grabOtherData } from 'SomeDataStore.js';
+
+export const loadDataSource = (source, filters) => {
+    switch(source) {
+        case 'simple':
+            return fetchTileData(filters);
+        case 'advanced':
+            grabOtherData().onChange(otherData => {
+              // what do we do here...
+            });
+    }
+}
+                                </code></pre>
+                                <p>Maybe we have the TileService watch for changes?</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section data-background="#1C1D21">
+                        <h4>(Talk about other more complicated stuff here)</h4>
+                    </section>
+                </section>
+                <section data-background="#1C1D21">
+                    <h4>We're pretty much stuck storing everything in Redux</h4>
+                </section>
+                <section data-background="#3F8EE9" class="override-dark">
+                    <h4>Enter streams</h4>
+                    <div style="width: 50%; margin: 0 auto;">
+                        <img src="assets/images/enter-stream.gif" alt="enter stream"/>
+                    </div>
+                </section>
+                <section>
+                    <h2>First thing is to model our data flow</h2>
+                    <div style="height: 900px">
+                        <div class="fragment current-only">
+                            <canvas id="stream-vis-1"></canvas>
+                            <p><code class="inline">Data Source</code> changes flow openly to the <code class="inline">Tile Component</code></p>
+                        </div>
+                        <div class="fragment current-only">
+                            <canvas id="stream-vis-2"></canvas>
+                            <p><code class="inline">OtherDataStore</code> changes</p>
+                        </div>
+                        <div class="fragment current-only">
+                            <canvas id="stream-vis-3"></canvas>
+                            <p><code class="inline">Data Source</code> changes when filters are changed</p>
+                        </div>
+                        <div class="fragment current-only">
+                            <canvas id="stream-vis-4"></canvas>
+                            <p>Can support a cyclical data flow</p>
+                        </div>
+                        <div class="fragment current-only">
+                            <canvas id="stream-vis-5"></canvas>
+                            <p>Can easily add other data points to the <code class="inline">Data Source</code></p>
+                        </div>
+                    </div>
+                </section>
+                <section>
+                    <h4>Let's build it!</h4>
+                    <iframe
+                            src="https://codesandbox.io/embed/react-redux-rxjs-demo-lims4?fontsize=14&hidenavigation=1&theme=dark"
+                            style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+                            title="react-redux-rxjs-demo"
+                            allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+                            sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+                    ></iframe>
+                </section>
+                <section>
+                    <h2>When should I do something like this?</h2>
+                </section>
+                <section data-background="#3F8EE9" class="override-dark">
+                    <h1>Questions?</h1>
                 </section>
             </div>
         </div>
 
         <script src="js/reveal.js"></script>
+        <script src="js/stream-visualizer.js"></script>
 
         <script>
             // More info about config & dependencies:
@@ -100,8 +445,221 @@
                 dependencies: [
                     { src: 'plugin/markdown/marked.js' },
                     { src: 'plugin/markdown/markdown.js' },
-                    { src: 'plugin/highlight/highlight.js' },
+                    { src: 'plugin/highlight.pack.js' },
+                    {
+                        src: 'node_modules/reveal-code-focus/reveal-code-focus.js',
+                        async: true,
+                        callback: function() {
+                            RevealCodeFocus();
+                        }
+                    },
                     { src: 'plugin/notes/notes.js', async: true }
+                ]
+            });
+
+            initStreamVisualizer(document.getElementById('stream-vis-1'), {
+                width: 2000,
+                height: 450,
+                nodes: [
+                    {
+                        name: 'datastore',
+                        text: 'OtherDataStore',
+                        x: 1000,
+                        y: 100,
+                        connections: [
+                            { ref: 'tileservice' }
+                        ]
+                    },
+                    {
+                        name: 'tileservice',
+                        text: 'Data Source',
+                        x: 1000,
+                        y: 400,
+                        interval: 3000,
+                        connections: [
+                            { ref: 'tilecomponent' }
+                        ]
+                    },
+                    {
+                        name: 'tilecomponent',
+                        text: 'Tile Component',
+                        x: 1000,
+                        y: 700
+                    }
+                ]
+            });
+            initStreamVisualizer(document.getElementById('stream-vis-2'), {
+                width: 2000,
+                height: 450,
+                nodes: [
+                    {
+                        name: 'datastore',
+                        text: 'OtherDataStore',
+                        x: 1000,
+                        y: 100,
+                        interval: 4000,
+                        connections: [
+                            { ref: 'tileservice' }
+                        ]
+                    },
+                    {
+                        name: 'tileservice',
+                        text: 'Data Source',
+                        x: 1000,
+                        y: 400,
+                        connections: [
+                            { ref: 'tilecomponent' }
+                        ]
+                    },
+                    {
+                        name: 'tilecomponent',
+                        text: 'Tile Component',
+                        x: 1000,
+                        y: 700
+                    }
+                ]
+            });
+            initStreamVisualizer(document.getElementById('stream-vis-3'), {
+                width: 2000,
+                height: 450,
+                nodes: [
+                    {
+                        name: 'datastore',
+                        text: 'OtherDataStore',
+                        x: 1000,
+                        y: 100,
+                        connections: [
+                            { ref: 'tileservice' }
+                        ]
+                    },
+                    {
+                        name: 'tileservice',
+                        text: 'Data Source',
+                        x: 1000,
+                        y: 400,
+                        connections: [
+                            { ref: 'tilecomponent' }
+                        ]
+                    },
+                    {
+                        name: 'tilecomponent',
+                        text: 'Tile Component',
+                        x: 1000,
+                        y: 700,
+                        connections: [
+                            { ref: 'filterrow' }
+                        ]
+                    },
+                    {
+                        name: 'filterrow',
+                        text: 'Filter Row Component',
+                        x: 300,
+                        y: 550,
+                        interval: 8000,
+                        end: true,
+                        connections: [
+                            { ref: 'tileservice' }
+                        ]
+                    }
+                ]
+            });
+            initStreamVisualizer(document.getElementById('stream-vis-4'), {
+                width: 2000,
+                height: 450,
+                nodes: [
+                    {
+                        name: 'datastore',
+                        text: 'OtherDataStore',
+                        x: 1000,
+                        y: 100,
+                        interval: 15000,
+                        connections: [
+                            { ref: 'tileservice' }
+                        ]
+                    },
+                    {
+                        name: 'tileservice',
+                        text: 'Data Source',
+                        x: 1000,
+                        y: 400,
+                        connections: [
+                            { ref: 'tilecomponent' }
+                        ]
+                    },
+                    {
+                        name: 'tilecomponent',
+                        text: 'Tile Component',
+                        x: 1000,
+                        y: 700,
+                        connections: [
+                            { ref: 'filterrow' }
+                        ]
+                    },
+                    {
+                        name: 'filterrow',
+                        text: 'Filter Row Component',
+                        x: 300,
+                        y: 550,
+                        connections: [
+                            { ref: 'tileservice' },
+                            { ref: 'datastore' }
+                        ]
+                    }
+                ]
+            });
+            initStreamVisualizer(document.getElementById('stream-vis-5'), {
+                width: 2000,
+                height: 450,
+                nodes: [
+                    {
+                        name: 'datastore',
+                        text: 'OtherDataStore',
+                        x: 1000,
+                        y: 100,
+                        interval: 4000,
+                        connections: [
+                            { ref: 'tileservice' }
+                        ]
+                    },
+                    {
+                        name: 'datastore2',
+                        text: 'SecondDataStore',
+                        x: 1500,
+                        y: 250,
+                        interval: 4000,
+                        delay: 2000,
+                        connections: [
+                            { ref: 'tileservice' }
+                        ]
+                    },
+                    {
+                        name: 'tileservice',
+                        text: 'Data Source',
+                        x: 1000,
+                        y: 400,
+                        connections: [
+                            { ref: 'tilecomponent' }
+                        ]
+                    },
+                    {
+                        name: 'tilecomponent',
+                        text: 'Tile Component',
+                        x: 1000,
+                        y: 700,
+                        connections: [
+                            { ref: 'filterrow' }
+                        ]
+                    },
+                    {
+                        name: 'filterrow',
+                        text: 'Filter Row Component',
+                        x: 300,
+                        y: 550,
+                        end: true,
+                        connections: [
+                            { ref: 'tileservice' }
+                        ]
+                    }
                 ]
             });
         </script>

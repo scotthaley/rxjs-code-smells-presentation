@@ -20,6 +20,7 @@
 $backgroundColor: #EEEEEE;
 
 $mainColor: #1C1D21;
+$darkGray: #424144;
 $headingColor: #222;
 
 $mainFontSize: 30px;
@@ -39,9 +40,9 @@ $heading3Size: 1.3em;
 $heading4Size: 1.0em;
 
 section.has-dark-background {
-	&, h1, h2, h3, h4, h5, h6 {
-		color: #fff;
-	}
+  &, h1, h2, h3, h4, h5, h6 {
+    color: #fff;
+  }
 }
 
 
@@ -49,70 +50,178 @@ section.has-dark-background {
 @import "../template/theme";
 // ---------------------------------------------
 
+section.override-dark {
+  h1, h2, h3, h4, h5, h6 {
+    color: $backgroundColor;
+  }
+}
+
 .reveal {
-	h1, h2, h3, h4, h5, h6 {
-		text-transform: none;
-	}
-	h1 {
-		font-size: 2.5em;
-	}
-	blockquote {
-		font-style: normal;
-		background-color: $mainColor;
-		color: $backgroundColor;
-		box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-        padding: 20px;
-	}
+  h1, h2, h3, h4, h5, h6 {
+    text-transform: none;
+  }
+  h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+  }
+  blockquote {
+    font-style: normal;
+    background-color: $mainColor;
+    color: $backgroundColor;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+    padding: 20px;
+  }
+  pre {
+    margin-bottom: 0;
 
-	.portrait-container {
-		display: flex;
-		justify-content: center;
-		align-items: center;
+    code {
+      border-radius: 5px;
+      padding: 15px;
+      max-height: 600px;
 
-		.portrait {
-			border-radius: 50%;
-			overflow: hidden;
-			width: 200px;
-			height: 200px;
-			box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+      &.blur {
+        & > .line {
+          opacity: 0.2;
+        }
+      }
 
-			img {
-				width: 100%;
-				border: none;
-				box-shadow: none;
-			}
-		}
+      .line {
+        display: block;
+        transition: opacity 0.2s ease-in;
+      }
+    }
+  }
 
-		.accounts {
-			display: flex;
-			flex-direction: column;
-            margin-left: 50px;
-            text-align: left;
+  code.inline {
+    background-color: $mainColor;
+    color: $backgroundColor;
+    border-radius: 5px;
+    padding: 0 8px;
+    font-weight: normal;
+  }
 
-			div {
-				display: flex;
-				align-items: center;
-			}
+  .combined-code {
+    pre:not(:first-of-type) {
+      margin-top: 0;
+      code {
+        border-radius: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+    }
 
-			i {
-				width: 50px;
+    pre:first-of-type {
+      code {
+        border-radius: 5px 5px 0 0;
+        padding-bottom: 0;
+      }
+    }
 
-				&.fa-twitter {
-					color: #00aced;
-				}
-			}
-		}
-	}
+    pre:last-of-type {
+      code {
+        border-radius: 0 0 5px 5px;
+        padding-top: 0;
+      }
+    }
+  }
 
-	.gifs {
-        margin-top: 20px;
-		width: 100%;
-		display: flex;
-        align-items: stretch;
+  section[data-fragment='0'] {
+    pre code.focus {
+      & > .line:not(.focus) {
+        opacity: 0.2;
+      }
+    }
+  }
 
-		img {
-			height: 200px;
-		}
-	}
+  section {
+    img {
+      width: 100%;
+      border: none;
+      box-shadow: none;
+      background: none;
+    }
+
+    .fragment.current-only {
+      opacity: 1;
+      visibility: visible;
+      display: none;
+
+      &.current-fragment {
+        display: block;
+      }
+    }
+  }
+
+  .portrait-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 80px;
+
+    .portrait {
+      border-radius: 50%;
+      overflow: hidden;
+      width: 200px;
+      height: 200px;
+      box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+    }
+
+    .accounts {
+      display: flex;
+      flex-direction: column;
+      margin-left: 50px;
+      text-align: left;
+
+      div {
+        display: flex;
+        align-items: center;
+
+        &:first-child {
+          font-size: 40px;
+          font-weight: 600;
+          border-bottom: 1px solid gray;
+          margin-bottom: 15px;
+          padding-bottom: 15px;
+        }
+      }
+
+      i {
+        width: 50px;
+        text-align: center;
+
+        &.fa-twitter {
+          color: #00aced;
+        }
+
+        &.fa-linkedin {
+          color: #0077b5;
+        }
+      }
+    }
+  }
+
+  .gifs {
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    align-items: stretch;
+
+    img {
+      height: 200px;
+    }
+  }
+
+  .image-overlays {
+    position: relative;
+    height: 650px;
+
+    img {
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      position: absolute;
+    }
+  }
 }
 
