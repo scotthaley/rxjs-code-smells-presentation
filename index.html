@@ -4,8 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-        <title>RxJS Code Smells</title>
+        <title>RxJS (and Why You Should Use It)</title>
 
+        <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
         <link rel="stylesheet" href="css/reset.css">
         <link rel="stylesheet" href="css/reveal.css">
         <link rel="stylesheet" href="css/theme/scott.css">
@@ -28,7 +29,10 @@
         <div class="reveal">
             <div class="slides">
                 <section>
-                    <h1>RxJS</h1>
+                    <h1 class="title">
+                        RxJS
+                        <img class="rxjs" src="assets/images/favicon.ico" alt="rxjs"/>
+                    </h1>
                     <h3>(and Why You Should Use It)</h3>
                     <div class="portrait-container">
                         <div class="portrait">
@@ -191,13 +195,15 @@ export const loadDataSource = (source, filters) => {
         case 'advanced':
             return new Promise((resolve, reject) => {
                 grabOtherData().next(otherData => {
-                    resolve(fetchTileData(filters, otherData));
-                }).catch(error => reject(error));
+                    return fetchTileData(filters, otherData);
+                })
+                .then(data => resolve(data))
+                .catch(error => reject(error));
             });
     }
 }
                         </code></pre>
-                        <p class="fragment" data-code-focus="8-13">Now let's add a more complicated data source</p>
+                        <p class="fragment" data-code-focus="8-15">Now let's add a more complicated data source</p>
                     </section>
                     <section>
                         <p>How do we handle changing filters?</p>
@@ -345,9 +351,7 @@ const Tile = ({ dataSource, filters }) => {
     return (
         &lt;div&gt;
             &lt;FilterRow
-                filters={filters}
-                values={filterValues}
-                onChange={setFilterValues}
+                ...
             /&gt;
             &lt;Visualization source={tileData} /&gt;
         &lt;/div&gt;
@@ -415,14 +419,26 @@ export const loadDataSource = (source, filters) => {
                     </div>
                 </section>
                 <section>
-                    <h4>Let's build it!</h4>
-                    <iframe
-                            src="https://codesandbox.io/embed/react-redux-rxjs-demo-lims4?fontsize=14&hidenavigation=1&theme=dark"
-                            style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
-                            title="react-redux-rxjs-demo"
-                            allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
-                            sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
-                    ></iframe>
+                    <section>
+                        <h4>Let's build it!</h4>
+                        <iframe
+                                src="https://codesandbox.io/embed/react-redux-rxjs-demo-lims4?fontsize=14&hidenavigation=1&theme=dark"
+                                style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+                                title="react-redux-rxjs-demo"
+                                allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+                                sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+                        ></iframe>
+                        <p>(finished version below)</p>
+                    </section>
+                    <section>
+                        <iframe
+                                src="https://codesandbox.io/embed/react-redux-rxjs-9ujs6?fontsize=14&hidenavigation=1"
+                                style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+                                title="react-redux-rxjs"
+                                allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+                                sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
+                        ></iframe>
+                    </section>
                 </section>
                 <section>
                     <h2>When should I do something like this?</h2>
